@@ -209,6 +209,8 @@ export class Builder implements IBuilder {
         if (step.index === 0 || configuration.get('latex.build.clearLog.everyRecipeStep.enabled') as boolean) {
             this.extension.logger.clearCompilerMessage()
         }
+        // const relPath = vscode.workspace.asRelativePath(step.rootFile)
+        // this.extension.logger.displayStatus('sync~spin', 'statusBar.foreground', undefined, undefined, ` ${this.progressString(recipeName, steps, index)}: ${relPath}`)
         this.extension.logger.displayStatus('sync~spin', 'statusBar.foreground', undefined, undefined, ' ' + this.stepQueue.getStepString(step))
         this.extension.logger.logCommand(`Recipe step ${step.index + 1}`, step.command, step.args)
         this.extension.logger.addLogMessage(`Recipe step env: ${JSON.stringify(step.env)}`)
@@ -710,13 +712,19 @@ class BuildToolQueue {
     }
 
     getStepString(step: Step): string {
+        let stepString: string
         if (step.timestamp !== this.steps[0]?.timestamp && step.index === 0) {
-            return step.recipeName
+            stepString = step.recipeName
         } else if (step.timestamp === this.steps[0]?.timestamp) {
-            return `${step.recipeName}: ${step.index + 1}/${this.steps[this.steps.length - 1].index + 1} (${step.name})`
+            stepString = `${step.recipeName}: ${step.index + 1}/${this.steps[this.steps.length - 1].index + 1} (${step.name})`
         } else {
-            return `${step.recipeName}: ${step.index + 1}/${step.index + 1} (${step.name})`
+            stepString = `${step.recipeName}: ${step.index + 1}/${step.index + 1} (${step.name})`
         }
+        if(step.rootFile){
+            const relPath = vscode.workspace.asRelativePath(step.rootFile)
+            stepString = `${relPath}: ${stepString}`
+        }
+        return stepString
     }
 
     getStep(): Step | undefined {
