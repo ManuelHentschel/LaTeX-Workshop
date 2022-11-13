@@ -609,35 +609,35 @@ export class Builder implements IBuilder {
         return [texCommand, bibCommand]
     }
 
-    /**
-     * Create sub directories of output directory This was supposed to create
-     * the outputDir as latexmk does not take care of it (neither does any of
-     * latex command). If the output directory does not exist, the latex
-     * commands simply fail.
-     */
-     private createOuputSubFolders(rootFile: string) {
-        const rootDir = path.dirname(rootFile)
-        let outDir = this.extension.manager.getOutDir(rootFile)
-        if (!path.isAbsolute(outDir)) {
-            outDir = path.resolve(rootDir, outDir)
-        }
-        this.extension.logger.addLogMessage(`outDir: ${outDir}`)
-        try {
-            this.extension.manager.getIncludedTeX(rootFile).forEach(file => {
-                const relativePath = path.dirname(file.replace(rootDir, '.'))
-                const fullOutDir = path.resolve(outDir, relativePath)
-                // To avoid issues when fullOutDir is the root dir
-                // Using fs.mkdir() on the root directory even with recursion will result in an error
-                if (! (fs.existsSync(fullOutDir) && fs.statSync(fullOutDir).isDirectory())) {
-                    fs.mkdirSync(fullOutDir, { recursive: true })
-                }
-            })
-        } catch (e) {
-            this.extension.logger.addLogMessage('Unexpected Error: please see the console log of the Developer Tools of VS Code.')
-            this.extension.logger.displayStatus('x', 'errorForeground')
-            throw(e)
-        }
-    }
+    // /**
+    //  * Create sub directories of output directory This was supposed to create
+    //  * the outputDir as latexmk does not take care of it (neither does any of
+    //  * latex command). If the output directory does not exist, the latex
+    //  * commands simply fail.
+    //  */
+    // private createOuputSubFolders(rootFile: string) {
+    //     const rootDir = path.dirname(rootFile)
+    //     let outDir = this.extension.manager.getOutDir(rootFile)
+    //     if (!path.isAbsolute(outDir)) {
+    //         outDir = path.resolve(rootDir, outDir)
+    //     }
+    //     this.extension.logger.addLogMessage(`outDir: ${outDir}`)
+    //     try {
+    //         this.extension.manager.getIncludedTeX(rootFile).forEach(file => {
+    //             const relativePath = path.dirname(file.replace(rootDir, '.'))
+    //             const fullOutDir = path.resolve(outDir, relativePath)
+    //             // To avoid issues when fullOutDir is the root dir
+    //             // Using fs.mkdir() on the root directory even with recursion will result in an error
+    //             if (! (fs.existsSync(fullOutDir) && fs.statSync(fullOutDir).isDirectory())) {
+    //                 fs.mkdirSync(fullOutDir, { recursive: true })
+    //             }
+    //         })
+    //     } catch (e) {
+    //         this.extension.logger.addLogMessage('Unexpected Error: please see the console log of the Developer Tools of VS Code.')
+    //         this.extension.logger.displayStatus('x', 'errorForeground')
+    //         throw(e)
+    //     }
+    // }
 }
 
 class BuildToolQueue {
