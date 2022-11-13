@@ -143,7 +143,9 @@ export class Builder implements IBuilder {
 
         await this.saveAll(rootFile)
 
-        this.createOuputSubFolders(rootFile)
+        // // this does not work properly, if a different wd is specified for a tool
+        // // and pdflatex and latexmk both create the out dir themselves
+        // this.createOuputSubFolders(rootFile)
 
         const tools = this.createBuildTools(rootFile, langId, recipeName)
 
@@ -226,14 +228,18 @@ export class Builder implements IBuilder {
             this.extension.logger.addLogMessage(`cwd: ${path.dirname(step.rootFile)}`)
 
             const args = step.args
+            cwd ||= step.cwd || path.dirname(step.rootFile)
+            cwd = replaceArgumentPlaceholders(step.rootFile, this.tmpDir)(cwd)
             if (args && !step.name.endsWith(this.MAGIC_PROGRAM_ARGS_SUFFIX)) {
                 // All optional arguments are given as a unique string (% !TeX options) if any, so we use {shell: true}
-                this.process = cs.spawn(`${step.command} ${args[0]}`, [], {cwd: path.dirname(step.rootFile), env, shell: true})
+                this.process = cs.spawn(`${step.command} ${args[0]}`, [], {cwd, env, shell: true})
             } else {
-                this.process = cs.spawn(step.command, args, {cwd: path.dirname(step.rootFile), env})
+                this.process = cs.spawn(step.command, args, {cwd, env})
             }
         } else if (!step.isExternal) {
-            if (step.command === 'latexmk' && step.rootFile === this.extension.manager.localRootFile && this.extension.manager.rootDir) {
+            if (step.cwd){
+                cwd = replaceArgumentPlaceholders(step.rootFile, this.tmpDir)(step.cwd)
+            } else if (step.command === 'latexmk' && step.rootFile === this.extension.manager.localRootFile && this.extension.manager.rootDir) {
                 cwd = this.extension.manager.rootDir
             } else {
                 cwd = path.dirname(step.rootFile)
@@ -734,7 +740,8 @@ interface Tool {
     name: string,
     command: string,
     args?: string[],
-    env?: ProcessEnv
+    env?: ProcessEnv,
+    cwd?: string
 }
 
 interface Recipe {
