@@ -66,13 +66,11 @@ html[dir='rtl'] .findbar {
 #historyBack::before {
     -webkit-mask-image: var(--findbarButton-previous-icon);
     mask-image: var(--findbarButton-previous-icon);
-    transform: rotate(-90deg);
 }
 
 #historyForward::before {
     -webkit-mask-image: var(--findbarButton-next-icon);
     mask-image: var(--findbarButton-next-icon);
-    transform: rotate(-90deg);
 }
 
 .pdfViewer.removePageBorders .page {
@@ -143,16 +141,6 @@ html[dir='rtl'] .findbar {
     display: none  !important;
 }
 
-#trimSelectContainer {
-    max-width: 138px;
-    min-width: 138px;
-}
-
-#trimSelectContainer > select {
-    min-width: 160px;
-    max-width: 160px;
-}
-
 #sidebarToggle::after {
     display: none;
 }
@@ -163,4 +151,15 @@ html[dir='rtl'] .findbar {
 
 #autoReloadOffButton::before {
     display: none;
+}
+
+#pageNumber {
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+@media all and (max-width: 700px) {
+  #trimSelectContainer {
+    display: none;
+  }
 }

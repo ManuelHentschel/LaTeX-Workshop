@@ -263,6 +263,11 @@ export class Viewer implements IViewer {
                 void this.extension.locator.locate(data, uri.fsPath)
                 break
             }
+            case 'external_link': {
+                void vscode.env.clipboard.writeText(data.url)
+                void vscode.window.showInformationMessage(`The link ${data.url} has been copied to clipboard.`, 'OK')
+                break
+            }
             case 'ping': {
                 // nothing to do
                 break

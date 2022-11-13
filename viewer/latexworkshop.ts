@@ -181,9 +181,11 @@ class LateXWorkshopPdfViewer implements ILatexWorkshopPdfViewer {
         document.addEventListener('webviewerloaded', () => {
             const color = this.isPrefersColorSchemeDark() ? params.color.dark : params.color.light
             const options = {
+                annotationEditorMode: -1,
                 disablePreferences: true,
                 enableScripting: false,
                 cMapUrl: '/cmaps/',
+                sidebarViewOnLoad: 0,
                 standardFontDataUrl: '/standard_fonts/',
                 workerPort,
                 workerSrc: '/build/pdf.worker.js',
@@ -452,16 +454,18 @@ class LateXWorkshopPdfViewer implements ILatexWorkshopPdfViewer {
         const numPages = document.getElementById('numPages') as HTMLElement
         const numPagesWidth = utils.elementWidth(numPages)
         const printerButtonWidth = this.embedded ? 0 : 34
-        const smallViewMaxWidth = 580 + numPagesWidth + scaleWidth + printerButtonWidth
+        const smallViewMaxWidth = 380 + numPagesWidth + scaleWidth + printerButtonWidth
         const smallViewRule = `@media all and (max-width: ${smallViewMaxWidth}px) { .hiddenSmallView, .hiddenSmallView * { display: none; } }`
         styleSheet.insertRule(smallViewRule)
-        const buttonSpacerMaxWidth = 540 + numPagesWidth + scaleWidth + printerButtonWidth
+        const buttonSpacerMaxWidth = 340 + numPagesWidth + scaleWidth + printerButtonWidth
         const buttonSpacerRule = `@media all and (max-width: ${buttonSpacerMaxWidth}px) { .toolbarButtonSpacer { width: 0; } }`
         styleSheet.insertRule(buttonSpacerRule)
-        const scaleMaxWidth = 500 + numPagesWidth + scaleWidth + printerButtonWidth
+        const scaleMaxWidth = 300 + numPagesWidth + scaleWidth + printerButtonWidth
         const scaleRule = `@media all and (max-width: ${scaleMaxWidth}px) { #scaleSelectContainer { display: none; } }`
         styleSheet.insertRule(scaleRule)
-        const trimMaxWidth = 500 + numPagesWidth + printerButtonWidth
+        const trimSelectContainer = document.getElementById('trimSelectContainer') as HTMLElement
+        const trimWidth = utils.elementWidth(trimSelectContainer)
+        const trimMaxWidth = 300 + numPagesWidth + scaleWidth + trimWidth + printerButtonWidth
         const trimRule = `@media all and (max-width: ${trimMaxWidth}px) { #trimSelectContainer { display: none; } }`
         styleSheet.insertRule(trimRule)
     }
@@ -490,10 +494,12 @@ class LateXWorkshopPdfViewer implements ILatexWorkshopPdfViewer {
     }
 
     private registerKeybinding() {
+        // if we're embedded we cannot open external links here. So we intercept clicks and forward them to the extension
         if (this.embedded) {
             document.addEventListener('click', (e) => {
                 const target = e.target as HTMLAnchorElement
                 if (target.nodeName === 'A' && !target.href.startsWith(window.location.href) && !target.href.startsWith('blob:')) { // is external link
+                    this.send({type:'external_link', url:target.href})
                     e.preventDefault()
                 }
             })
