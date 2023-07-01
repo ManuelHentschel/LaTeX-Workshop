@@ -764,13 +764,19 @@ class BuildToolQueue {
     }
 
     getStepString(step: Step): string {
+        let stepString: string
         if (step.timestamp !== this.steps[0]?.timestamp && step.index === 0) {
-            return step.recipeName
+            stepString = step.recipeName
         } else if (step.timestamp === this.steps[0]?.timestamp) {
-            return `${step.recipeName}: ${step.index + 1}/${this.steps[this.steps.length - 1].index + 1} (${step.name})`
+            stepString = `${step.recipeName}: ${step.index + 1}/${this.steps[this.steps.length - 1].index + 1} (${step.name})`
         } else {
-            return `${step.recipeName}: ${step.index + 1}/${step.index + 1} (${step.name})`
+            stepString = `${step.recipeName}: ${step.index + 1}/${step.index + 1} (${step.name})`
         }
+        if(step.rootFile){
+            const relPath = vscode.workspace.asRelativePath(step.rootFile)
+            stepString = `${relPath}: ${stepString}`
+        }
+        return stepString
     }
 
     getStep(): Step | undefined {
