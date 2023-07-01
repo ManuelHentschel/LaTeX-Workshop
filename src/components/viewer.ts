@@ -12,7 +12,6 @@ import { createPdfViewerPanel } from './viewerlib/pdfviewerpanel'
 import { viewerManager } from './viewerlib/pdfviewermanager'
 import { ViewerPageLoaded } from './eventbus'
 import { getLogger } from './logger'
-import { moveActiveEditor } from '../utils/webview'
 
 const logger = getLogger('Viewer')
 
@@ -96,12 +95,13 @@ export class Viewer {
 
     async open(pdfFile: string, mode?: string): Promise<void> {
         const configuration = vscode.workspace.getConfiguration('latex-workshop')
-        const tabEditorGroup = configuration.get('view.pdf.tab.editorGroup') as string
-        const viewer = mode ?? configuration.get<'tab' | 'browser' | 'singleton' | 'external'>('view.pdf.viewer', 'tab')
+        const viewColumnName = configuration.get('view.pdf.tab.viewColumn', 'Active') as keyof typeof vscode.ViewColumn
+        const viewColumn = vscode.ViewColumn[viewColumnName]
+        const viewer = mode ?? configuration.get<'tab' | 'browser' | 'external'>('view.pdf.viewer', 'tab')
         if (viewer === 'browser') {
             return lw.viewer.openBrowser(pdfFile)
-        } else if (viewer === 'tab' || viewer === 'singleton') {
-            return lw.viewer.openTab(pdfFile, tabEditorGroup, true)
+        } else if (viewer === 'tab' ) {
+            return lw.viewer.openTab(pdfFile, viewColumn)
         } else if (viewer === 'external') {
             return lw.viewer.openExternal(pdfFile)
         }
@@ -137,38 +137,24 @@ export class Viewer {
      * Opens the PDF file in the internal PDF viewer.
      *
      * @param pdfFile The path of a PDF file.
-     * @param tabEditorGroup
-     * @param preserveFocus
+     * @param viewColumn
      */
-    async openTab(pdfFile: string, tabEditorGroup: string, preserveFocus: boolean): Promise<void> {
+    async openTab(pdfFile: string, viewColumn: vscode.ViewColumn): Promise<void> {
         const url = await this.checkViewer(pdfFile)
         if (!url) {
             return
         }
         const pdfUri = vscode.Uri.file(pdfFile)
-        return this.openPdfInTab(pdfUri, tabEditorGroup, preserveFocus)
+        const showOptions: vscode.TextDocumentShowOptions = {
+            viewColumn,
+            preserveFocus: true
+        }
+        await vscode.commands.executeCommand('vscode.openWith', pdfUri, 'latex-workshop-pdf-hook', showOptions)
     }
 
-    async openPdfInTab(pdfUri: vscode.Uri, tabEditorGroup: string, preserveFocus: boolean): Promise<void> {
-        const configuration = vscode.workspace.getConfiguration('latex-workshop')
-        const singleton = configuration.get<'tab' | 'browser' | 'singleton' | 'external'>('view.pdf.viewer', 'tab') === 'singleton'
-        if (singleton) {
-            const panels = viewerManager.getPanelSet(pdfUri)
-            if (panels && panels.size > 0) {
-                panels.forEach(panel => panel.webviewPanel.reveal(undefined, true))
-                logger.log(`Reveal the existing PDF tab for ${pdfUri.toString(true)}`)
-                return
-            }
-        }
-        const activeDocument = vscode.window.activeTextEditor?.document
-        const panel = await createPdfViewerPanel(pdfUri, tabEditorGroup === 'current')
+    async openPdfInTab(pdfUri: vscode.Uri, webviewPanel: vscode.WebviewPanel): Promise<void> {
+        const panel = await createPdfViewerPanel(pdfUri, webviewPanel)
         viewerManager.initiatePdfViewerPanel(panel)
-        if (!panel) {
-            return
-        }
-        if (tabEditorGroup !== 'current' && activeDocument) {
-            await moveActiveEditor(tabEditorGroup, preserveFocus)
-        }
         logger.log(`Open PDF tab for ${pdfUri.toString(true)}`)
     }
 

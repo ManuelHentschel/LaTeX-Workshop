@@ -1,5 +1,4 @@
 import * as vscode from 'vscode'
-import * as path from 'path'
 import * as lw from '../../lw'
 import type {PanelRequest, PdfViewerState} from '../../../types/latex-workshop-protocol-types/index'
 import { escapeHtml, sleep } from '../../utils/utils'
@@ -85,16 +84,9 @@ async function patchCodespaces(url: vscode.Uri) {
     codespacesPatched = true
 }
 
-export async function createPdfViewerPanel(pdfUri: vscode.Uri, preserveFocus: boolean): Promise<PdfViewerPanel> {
+export async function createPdfViewerPanel(pdfUri: vscode.Uri, panel: vscode.WebviewPanel): Promise<PdfViewerPanel> {
     await lw.server.serverStarted
     const htmlContent = await getPDFViewerContent(pdfUri)
-    const panel = vscode.window.createWebviewPanel('latex-workshop-pdf', path.basename(pdfUri.path), {
-        viewColumn: vscode.ViewColumn.Active,
-        preserveFocus
-    }, {
-        enableScripts: true,
-        retainContextWhenHidden: true
-    })
     panel.webview.html = htmlContent
     const pdfPanel = new PdfViewerPanel(pdfUri, panel)
     return pdfPanel
