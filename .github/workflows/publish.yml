@@ -1,0 +1,27 @@
+
+name: publish
+
+# runs when a tag v* is pushed
+# publish to marketplace
+
+on:
+  push:
+    tags: ["vv*"]
+  workflow_dispatch:
+
+
+jobs:
+  publish:
+    name: Publish
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: npm install
+      - uses: lannonbr/vsce-action@3.0.0
+        with:
+          args: "publish -p $VSCE_TOKEN"
+        env:
+          VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+
+
