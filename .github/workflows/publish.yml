@@ -6,7 +6,7 @@ name: publish
 
 on:
   push:
-    tags: ["v*"]
+    tags: ["vv*"]
   workflow_dispatch:
 
 
