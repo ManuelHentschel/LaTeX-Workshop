@@ -4,12 +4,12 @@
   "description": "Boost LaTeX typesetting efficiency with preview, compile, autocomplete, colorize, and more.",
   "icon": "icons/icon.png",
   "version": "9.12.2",
-  "publisher": "James-Yu",
+  "publisher": "manhen",
   "license": "MIT",
-  "homepage": "https://github.com/James-Yu/LaTeX-Workshop",
+  "homepage": "https://github.com/ManuelHentschel/LaTeX-Workshop",
   "repository": {
     "type": "git",
-    "url": "https://github.com/James-Yu/LaTeX-Workshop.git"
+    "url": "https://github.com/ManuelHentschel/LaTeX-Workshop"
   },
   "engines": {
     "vscode": "^1.74.0"
