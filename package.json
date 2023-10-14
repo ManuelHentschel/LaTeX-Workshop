@@ -1080,7 +1080,7 @@
         "latex-workshop.latex.build.rootfileInStatus": {
           "scope": "resource",
           "type": "boolean",
-          "default": false,
+          "default": true,
           "markdownDescription": "Whether to include the name of the root file being built in the status bar."
         },
         "latex-workshop.latex.texDirs": {
