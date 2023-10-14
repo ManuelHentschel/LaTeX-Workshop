@@ -881,6 +881,9 @@
               },
               "env": {
                 "type": "object"
+              },
+              "cwd": {
+                "type": "string"
               }
             },
             "required": [

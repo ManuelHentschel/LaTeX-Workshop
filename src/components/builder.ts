@@ -168,7 +168,9 @@ export class Builder {
 
         await vscode.workspace.saveAll()
 
-        this.createOuputSubFolders(rootFile)
+        // // this does not work properly, if a different wd is specified for a tool
+        // // and pdflatex and latexmk both create the out dir themselves
+        // this.createOuputSubFolders(rootFile)
 
         const tools = this.createBuildTools(rootFile, langId, recipeName)
 
@@ -268,16 +270,21 @@ export class Builder {
              step.name.startsWith(this.BIB_MAGIC_PROGRAM_NAME))) {
             logger.log(`cwd: ${path.dirname(step.rootFile)}`)
 
+            let cwd = step.cwd || path.dirname(step.rootFile)
+            cwd = replaceArgumentPlaceholders(step.rootFile, lw.manager.tmpDir)(cwd)
+
             const args = step.args
             if (args && !step.name.endsWith(this.MAGIC_PROGRAM_ARGS_SUFFIX)) {
                 // All optional arguments are given as a unique string (% !TeX options) if any, so we use {shell: true}
-                this.process = cs.spawn(`${step.command} ${args[0]}`, [], {cwd: path.dirname(step.rootFile), env, shell: true})
+                this.process = cs.spawn(`${step.command} ${args[0]}`, [], {cwd, env, shell: true})
             } else {
-                this.process = cs.spawn(step.command, args, {cwd: path.dirname(step.rootFile), env})
+                this.process = cs.spawn(step.command, args, {cwd, env})
             }
         } else if (!step.isExternal) {
             let cwd = path.dirname(step.rootFile)
-            if (step.command === 'latexmk' && step.rootFile === lw.manager.localRootFile && lw.manager.rootDir) {
+            if (step.cwd){
+                cwd = replaceArgumentPlaceholders(step.rootFile, lw.manager.tmpDir)(step.cwd)
+            } else if (step.command === 'latexmk' && step.rootFile === lw.manager.localRootFile && lw.manager.rootDir) {
                 cwd = lw.manager.rootDir
             }
             logger.log(`cwd: ${cwd}`)
@@ -660,35 +667,35 @@ export class Builder {
         return {tex: texCommand, bib: bibCommand, recipe: recipe?.[1]}
     }
 
-    /**
-     * Create sub directories of output directory This was supposed to create
-     * the outputDir as latexmk does not take care of it (neither does any of
-     * latex command). If the output directory does not exist, the latex
-     * commands simply fail.
-     */
-     private createOuputSubFolders(rootFile: string) {
-        const rootDir = path.dirname(rootFile)
-        let outDir = lw.manager.getOutDir(rootFile)
-        if (!path.isAbsolute(outDir)) {
-            outDir = path.resolve(rootDir, outDir)
-        }
-        logger.log(`outDir: ${outDir} .`)
-        try {
-            lw.cacher.getIncludedTeX(rootFile).forEach(file => {
-                const relativePath = path.dirname(file.replace(rootDir, '.'))
-                const fullOutDir = path.resolve(outDir, relativePath)
-                // To avoid issues when fullOutDir is the root dir
-                // Using fs.mkdir() on the root directory even with recursion will result in an error
-                if (! (fs.existsSync(fullOutDir) && fs.statSync(fullOutDir).isDirectory())) {
-                    fs.mkdirSync(fullOutDir, { recursive: true })
-                }
-            })
-        } catch (e) {
-            logger.log('Unexpected Error: please see the console log of the Developer Tools of VS Code.')
-            logger.refreshStatus('x', 'errorForeground')
-            throw(e)
-        }
-    }
+    // /**
+    //  * Create sub directories of output directory This was supposed to create
+    //  * the outputDir as latexmk does not take care of it (neither does any of
+    //  * latex command). If the output directory does not exist, the latex
+    //  * commands simply fail.
+    //  */
+    // private createOuputSubFolders(rootFile: string) {
+    //     const rootDir = path.dirname(rootFile)
+    //     let outDir = lw.manager.getOutDir(rootFile)
+    //     if (!path.isAbsolute(outDir)) {
+    //         outDir = path.resolve(rootDir, outDir)
+    //     }
+    //     logger.log(`outDir: ${outDir} .`)
+    //     try {
+    //         lw.cacher.getIncludedTeX(rootFile).forEach(file => {
+    //             const relativePath = path.dirname(file.replace(rootDir, '.'))
+    //             const fullOutDir = path.resolve(outDir, relativePath)
+    //             // To avoid issues when fullOutDir is the root dir
+    //             // Using fs.mkdir() on the root directory even with recursion will result in an error
+    //             if (! (fs.existsSync(fullOutDir) && fs.statSync(fullOutDir).isDirectory())) {
+    //                 fs.mkdirSync(fullOutDir, { recursive: true })
+    //             }
+    //         })
+    //     } catch (e) {
+    //         logger.log('Unexpected Error: please see the console log of the Developer Tools of VS Code.')
+    //         logger.refreshStatus('x', 'errorForeground')
+    //         throw(e)
+    //     }
+    // }
 }
 
 class BuildToolQueue {
@@ -794,7 +801,8 @@ interface Tool {
     name: string,
     command: string,
     args?: string[],
-    env?: ProcessEnv
+    env?: ProcessEnv,
+    cwd?: string
 }
 
 interface Recipe {
