@@ -1,11 +1,6 @@
 # Fork of [James-Yu/LaTeX-Workshop](https://github.com/James-Yu/LaTeX-Workshop/blob/master/package.json)
 
-Includes the fix from [#3069](https://github.com/James-Yu/LaTeX-Workshop/pull/3069),
-(see also
-[#3337](https://github.com/James-Yu/LaTeX-Workshop/issues/3337),
-[#3338](https://github.com/James-Yu/LaTeX-Workshop/issues/3338),
-[#3961](https://github.com/James-Yu/LaTeX-Workshop/discussions/3951))
-and other minor changes/improvements.
+Includes some minor fixes/improvements.
 
 # Visual Studio Code LaTeX Workshop Extension
 
