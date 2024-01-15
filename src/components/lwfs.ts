@@ -1,6 +1,11 @@
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 
+import * as ppath from 'path'
+import * as git from './git'
+import * as cp from 'child_process'
+import { promisify } from 'util'
+
 export class LwFileSystem {
     isLocalUri(uri: vscode.Uri): boolean {
         return uri.scheme === 'file'
@@ -31,6 +36,8 @@ export class LwFileSystem {
     async readFileAsBuffer(fileUri: vscode.Uri): Promise<Buffer> {
         if (this.isLocalUri(fileUri)) {
             return fs.promises.readFile(fileUri.fsPath)
+        } else if(fileUri.scheme === 'git') {
+            return readGitFile(fileUri)
         } else {
             const resultUint8 = await vscode.workspace.fs.readFile(fileUri)
             return Buffer.from(resultUint8)
@@ -54,4 +61,26 @@ export class LwFileSystem {
         }
     }
 
+}
+
+async function readGitFile(uri: vscode.Uri): Promise<Buffer> {
+    const gitExtension = vscode.extensions.getExtension<git.GitExtension>('vscode.git')
+    if(!gitExtension) {
+        throw new Error('Git extension not installed or not activated!')
+    }
+    const api = gitExtension.exports.getAPI(1)
+    const repo = api.getRepository(uri)
+    if(!repo){
+        throw new Error(`Did not find repo for uri: ${uri.toString()}}`)
+    }
+    const {path, ref} = JSON.parse(uri.query) as {path: string, ref: string}
+    const fixRef = ref.replace(/^~/, 'HEAD')
+    const relPath = ppath.relative(repo.rootUri.fsPath, path).replaceAll('\\', '/')
+    const cmd = `git show ${fixRef}:${relPath}`
+    const options = {
+        encoding: 'buffer' as const,
+        cwd: repo.rootUri.fsPath
+    }
+    const ret = await promisify(cp.exec)(cmd, options)
+    return ret.stdout
 }

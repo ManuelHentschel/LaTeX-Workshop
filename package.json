@@ -3,7 +3,7 @@
   "displayName": "LaTeX Workshop",
   "description": "Boost LaTeX typesetting efficiency with preview, compile, autocomplete, colorize, and more.",
   "icon": "icons/icon.png",
-  "version": "9.14.1",
+  "version": "9.14.2",
   "publisher": "manhen",
   "license": "MIT",
   "homepage": "https://github.com/ManuelHentschel/LaTeX-Workshop",
@@ -14,6 +14,9 @@
   "engines": {
     "vscode": "^1.74.0"
   },
+  "extensionDependencies": [
+    "vscode.git"
+  ],
   "categories": [
     "Programming Languages",
     "Snippets",
